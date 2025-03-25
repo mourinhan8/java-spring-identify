@@ -8,6 +8,7 @@ import com.mourinhan.identify_service.enums.Role;
 import com.mourinhan.identify_service.exception.AppException;
 import com.mourinhan.identify_service.exception.ErrorCode;
 import com.mourinhan.identify_service.mapper.UserMapper;
+import com.mourinhan.identify_service.repositories.RoleRepository;
 import com.mourinhan.identify_service.repositories.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class UserService {
     UserRepository userRepository;
     UserMapper userMapper;
     PasswordEncoder passwordEncoder;
+    RoleRepository roleRepository;
 
     public User createUser(UserCreationRequest request) {
         if (userRepository.existsByUsername(request.getUsername()))
@@ -49,7 +51,10 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         userMapper.updateUser(user, request);
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
 
+        var roles = roleRepository.findAllById(request.getRoles());
+        user.setRoles(new HashSet<>(roles));
         return userMapper.toUserResponse(userRepository.save(user));
     }
 
@@ -57,7 +62,9 @@ public class UserService {
         userRepository.deleteById(userId);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('APPROVE_POST')")
+//    @PreAuthorize("hasAnyAuthority('APPROVE_POST', 'CREATE_DATA')")
     public List<UserResponse> getUsers() {
         log.info("In method get Users");
         return userRepository.findAll().stream()
