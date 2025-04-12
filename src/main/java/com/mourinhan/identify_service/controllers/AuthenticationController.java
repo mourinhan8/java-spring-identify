@@ -2,6 +2,8 @@ package com.mourinhan.identify_service.controllers;
 
 import com.mourinhan.identify_service.dto.request.AuthenticationRequest;
 import com.mourinhan.identify_service.dto.request.IntrospectRequest;
+import com.mourinhan.identify_service.dto.request.LogoutRequest;
+import com.mourinhan.identify_service.dto.request.RefreshRequest;
 import com.mourinhan.identify_service.dto.response.ApiResponse;
 import com.mourinhan.identify_service.dto.response.AuthenticationResponse;
 import com.mourinhan.identify_service.dto.response.IntrospectResponse;
@@ -33,11 +35,27 @@ public class AuthenticationController {
     }
 
     @PostMapping("/introspect")
-    ApiResponse<IntrospectResponse> authenticate(@RequestBody IntrospectRequest request)
+    ApiResponse<IntrospectResponse> introspect(@RequestBody IntrospectRequest request)
             throws ParseException, JOSEException {
         var result = authenticationService.introspect(request);
         return ApiResponse.<IntrospectResponse>builder()
                 .result(result)
+                .build();
+    }
+
+    @PostMapping("/refresh")
+    ApiResponse<AuthenticationResponse> refreshToken(@RequestBody RefreshRequest request) throws ParseException, JOSEException {
+        var result = authenticationService.refreshToken(request);
+        return ApiResponse.<AuthenticationResponse>builder()
+                .result(result)
+                .build();
+    }
+
+    @PostMapping("/logout")
+    ApiResponse<Void> logout(@RequestBody LogoutRequest request)
+            throws ParseException, JOSEException {
+        authenticationService.logout(request);
+        return ApiResponse.<Void>builder()
                 .build();
     }
 }
